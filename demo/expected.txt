@@ -1,5 +1,5 @@
 $ youtube-upload --version
-youtube-upload 0.1.0
+youtube-upload VERSION
 $ youtube-upload video.mp4 with metadata, thumbnail, and captions
 Video uploaded: demo-video-id
 Custom thumbnail attached

@@ -76,7 +76,9 @@ jobs:
 
           cd "$repository_root"
           asciinema convert --overwrite artifacts/demo.cast artifacts/demo.txt
-          diff -u demo/expected.txt artifacts/demo.txt
+          sed -E 's/^youtube-upload [^ ]+$/youtube-upload VERSION/' \
+            artifacts/demo.txt > "$RUNNER_TEMP/demo-normalized.txt"
+          diff -u demo/expected.txt "$RUNNER_TEMP/demo-normalized.txt"
           sha256sum dist/* artifacts/demo.cast artifacts/demo.txt \
             > artifacts/SHA256SUMS
 
