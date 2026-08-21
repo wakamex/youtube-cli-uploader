@@ -63,7 +63,8 @@ asciinema rec "$artifact_directory/live-demo.cast" \
     --overwrite
 python "$repository_root/demo/shorten_cast.py" \
     "$artifact_directory/live-demo.cast" \
-    --max-idle 2
+    --max-idle 2 \
+    --final-pause 5
 
 asciinema convert \
     --overwrite \

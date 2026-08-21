@@ -100,7 +100,7 @@ locked tests, builds one wheel, installs that wheel in a clean environment, reco
 using the committed example assets, prints the channel URL returned by YouTube, and deletes the test
 video. An exit trap also attempts deletion if a later upload step fails. The token is neither shown
 in the recording nor copied into the artifacts. Idle gaps longer than two seconds are shortened in
-the saved cast without changing its output.
+the saved cast without changing its output, and the final screen remains visible for five seconds.
 
 The recording, transcript, wheel, and checksums are written to `artifacts/live-demo/`. Review the
 recording before sharing it and provide the printed channel URL in the verification email.
