@@ -9,6 +9,9 @@ dependencies = [
     "google-auth-oauthlib>=1.2.2",
 ]
 
+[dependency-groups]
+dev = ["ruff>=0.16.4"]
+
 [tool.uv]
 package = true
 

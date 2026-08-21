@@ -122,8 +122,8 @@ class _YouTube:
 state_value = os.environ.get("YOUTUBE_DEMO_FAKE_STATE")
 if state_value:
     try:
-        from google.oauth2.credentials import Credentials
         import googleapiclient.discovery
+        from google.oauth2.credentials import Credentials
     except ModuleNotFoundError:
         pass
     else:
