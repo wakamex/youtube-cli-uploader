@@ -2,9 +2,9 @@ import tempfile
 import unittest
 from argparse import Namespace
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
-from youtube_cli_uploader import upload
+from youtube_cli_uploader import delete, upload
 
 
 class UploadRequest:
@@ -38,6 +38,50 @@ class YouTube:
 
 
 class UploadTests(unittest.TestCase):
+    def test_processing_wait_is_explained_between_status_results(self):
+        processing = {
+            "snippet": {"title": "Example", "channelId": "channel-id"},
+            "status": {"privacyStatus": "private", "uploadStatus": "uploaded"},
+            "processingDetails": {"processingStatus": "processing"},
+            "contentDetails": {"duration": "P0D"},
+        }
+        succeeded = {
+            **processing,
+            "status": {"privacyStatus": "private", "uploadStatus": "processed"},
+            "processingDetails": {"processingStatus": "succeeded"},
+            "contentDetails": {"duration": "PT2S"},
+        }
+        youtube = Mock()
+        youtube.videos.return_value.list.return_value.execute.side_effect = [
+            {"items": [processing]},
+            {"items": [succeeded]},
+        ]
+
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            patch("builtins.print") as print_mock,
+            patch.object(upload.time, "sleep") as sleep_mock,
+        ):
+            upload.wait_for_processing(
+                youtube, "video-id", 60, {}, Path(directory) / "state.json"
+            )
+
+        print_mock.assert_any_call(
+            "Waiting for YouTube processing to finish...", end="", flush=True
+        )
+        print_mock.assert_any_call(" done!", flush=True)
+        sleep_mock.assert_called_once_with(15)
+
+    def test_delete_video_waits_for_api_success(self):
+        request = Mock()
+        youtube = Mock()
+        youtube.videos.return_value.delete.return_value = request
+
+        delete.delete_video(youtube, "video-id")
+
+        youtube.videos.return_value.delete.assert_called_once_with(id="video-id")
+        request.execute.assert_called_once_with(num_retries=5)
+
     def test_caption_failure_resumes_without_uploading_another_video(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

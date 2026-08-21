@@ -1,0 +1,88 @@
+name: Acceptance demo
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  demo:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Check out source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@1e862dfacbd1d6d858c55d9b792c756523627244
+        with:
+          version: "0.11.29"
+          enable-cache: false
+
+      - name: Test and build package
+        run: |
+          uv --no-config run --locked python -m unittest discover -s tests
+          uv --no-config export \
+            --locked \
+            --no-dev \
+            --no-emit-project \
+            --output-file "$RUNNER_TEMP/demo-requirements.txt"
+          uv --no-config build --no-sources
+
+      - name: Install built package and asciinema
+        run: |
+          uv --no-config venv "$RUNNER_TEMP/demo-venv"
+          uv --no-config pip sync \
+            --python "$RUNNER_TEMP/demo-venv/bin/python" \
+            "$RUNNER_TEMP/demo-requirements.txt"
+          uv --no-config pip install \
+            --python "$RUNNER_TEMP/demo-venv/bin/python" \
+            --no-deps \
+            dist/*.whl
+          curl --fail --location --silent --show-error \
+            --output "$RUNNER_TEMP/asciinema" \
+            https://github.com/asciinema/asciinema/releases/download/v3.2.0/asciinema-x86_64-unknown-linux-gnu
+          echo "89f431ea3a31f9a108f38050a242aa63f8d368975330212281675c4fb1399633  $RUNNER_TEMP/asciinema" \
+            | sha256sum --check
+          chmod +x "$RUNNER_TEMP/asciinema"
+
+      - name: Record and verify demo
+        env:
+          ASCIINEMA_CONFIG_HOME: ${{ runner.temp }}/asciinema-config
+          LC_ALL: C.UTF-8
+          TERM: xterm-256color
+          TZ: UTC
+          YOUTUBE_DEMO_FAKE_STATE: ${{ runner.temp }}/demo-api.json
+        run: |
+          export PATH="$RUNNER_TEMP/demo-venv/bin:$RUNNER_TEMP:$PATH"
+          export PYTHONPATH="$PWD/demo/support"
+          mkdir -p artifacts "$RUNNER_TEMP/demo-work"
+          repository_root="$PWD"
+          cd "$RUNNER_TEMP/demo-work"
+
+          asciinema rec "$repository_root/artifacts/demo.cast" \
+            --command "$repository_root/demo/demo.sh" \
+            --headless \
+            --window-size 100x30 \
+            --capture-env TERM,LC_ALL,TZ \
+            --return \
+            --overwrite
+
+          cd "$repository_root"
+          asciinema convert --overwrite artifacts/demo.cast artifacts/demo.txt
+          diff -u demo/expected.txt artifacts/demo.txt
+          sha256sum dist/* artifacts/demo.cast artifacts/demo.txt \
+            > artifacts/SHA256SUMS
+
+      - name: Upload demo evidence
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: acceptance-demo
+          path: |
+            artifacts/
+            dist/

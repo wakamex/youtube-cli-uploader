@@ -1,6 +1,7 @@
 """Upload a video and its optional assets through the YouTube Data API."""
 
 import argparse
+import importlib.metadata
 import json
 import os
 import time
@@ -15,6 +16,11 @@ DEFAULT_TOKEN = Path("~/.config/youtube-api-uploader/token.json").expanduser()
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {importlib.metadata.version('youtube-cli-uploader')}",
+    )
     parser.add_argument("video", type=Path)
     parser.add_argument("--title", required=True)
     parser.add_argument("--description-file", type=Path, required=True)
@@ -186,6 +192,7 @@ def wait_for_processing(
     youtube, video_id: str, timeout: int, state: dict, state_path: Path
 ) -> dict:
     deadline = time.monotonic() + timeout
+    waiting = False
     while True:
         response = (
             youtube.videos()
@@ -199,11 +206,16 @@ def wait_for_processing(
                 "or deleted it during processing"
             )
 
+        if waiting:
+            print(" done!", flush=True)
         video = items[0]
+        channel_id = video["snippet"]["channelId"]
         result = {
             "video_id": video_id,
             "url": f"https://www.youtube.com/watch?v={video_id}",
             "title": video["snippet"]["title"],
+            "channel_id": channel_id,
+            "channel_url": f"https://www.youtube.com/channel/{channel_id}",
             "privacy_status": video["status"]["privacyStatus"],
             "upload_status": video["status"]["uploadStatus"],
             "processing_status": video.get("processingDetails", {}).get(
@@ -222,6 +234,12 @@ def wait_for_processing(
             raise RuntimeError(f"YouTube processing {status}")
         if time.monotonic() >= deadline:
             raise TimeoutError("YouTube processing did not finish before the timeout")
+        print(
+            "Waiting for YouTube processing to finish...",
+            end="",
+            flush=True,
+        )
+        waiting = True
         time.sleep(15)
 
 

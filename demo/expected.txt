@@ -1,0 +1,27 @@
+$ youtube-upload --version
+youtube-upload 0.1.0
+$ youtube-upload video.mp4 with metadata, thumbnail, and captions
+Video uploaded: demo-video-id
+Custom thumbnail attached
+{
+  "video_id": "demo-video-id",
+  "url": "https://www.youtube.com/watch?v=demo-video-id",
+  "title": "CI demo upload",
+  "channel_id": "demo-channel-id",
+  "channel_url": "https://www.youtube.com/channel/demo-channel-id",
+  "privacy_status": "private",
+  "upload_status": "processed",
+  "processing_status": "succeeded",
+  "duration": "PT2S"
+}
+Caption track attached: demo-caption-id
+{
+  "caption_id": "demo-caption-id",
+  "language": "en",
+  "status": "serving",
+  "failure_reason": null
+}
+$ youtube-delete demo-video-id
+Video deleted: demo-video-id
+$ verify the uploaded video was deleted
+Upload cleanup verified
