@@ -1,0 +1,25 @@
+[project]
+name = "youtube-cli-uploader"
+version = "0.1.0"
+description = "A private-first YouTube Data API uploader"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "google-api-python-client>=2.179.0",
+    "google-auth-oauthlib>=1.2.2",
+]
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.urls]
+Homepage = "https://github.com/wakamex/youtube-cli-uploader"
+Source = "https://github.com/wakamex/youtube-cli-uploader"
+
+[project.scripts]
+youtube-upload = "youtube_cli_uploader.upload:main"
+youtube-authorize = "youtube_cli_uploader.authorize:main"

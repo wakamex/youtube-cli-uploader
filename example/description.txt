@@ -1,0 +1,3 @@
+Private example upload created with youtube-cli-uploader.
+
+This video exercises resumable upload, metadata, thumbnail, caption, synthetic media disclosure, and processing checks.

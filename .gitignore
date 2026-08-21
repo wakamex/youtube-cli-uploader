@@ -1,0 +1,8 @@
+.venv/
+.ruff_cache/
+__pycache__/
+*.pyc
+client_secret.json
+token.json
+upload-state.json
+*.youtube-upload.json
